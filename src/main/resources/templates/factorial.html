@@ -1,0 +1,47 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>считать факториал с веб соккетом интереснее</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="js/sockjs-0.3.4.js"></script>
+    <script src="js/stomp.js"></script>
+    <script type="text/javascript">
+        var stompClient = null;
+        connect();
+        function setConnected(connected) {
+            document.getElementById('conversationDiv').style.visibility =  'visible';
+        }
+
+        var lastElem;
+
+        function connect() {
+            var socket = new SockJS('/factorialpoint');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function(frame) {
+                setConnected(true);
+                console.log('Connected: ' + frame);
+                stompClient.subscribe('/topic/newfactorial', function(message){
+                    showFactorial(message.body);
+                });
+                stompClient.send("/app/factorialpoint", {},"hello");
+            });
+        }
+
+        function showFactorial(message) {
+            var response = document.getElementById('response');
+            response.innerHTML = '';
+            var p = document.createElement('p');
+            p.style.wordWrap = 'break-word';
+            p.appendChild(document.createTextNode(message));
+            response.appendChild(p);
+        }
+    </script>
+</head>
+<body>
+<h1>Считаем с вебсоккетом</h1>
+<div id="conversationDiv">
+    <h2>что мы уже нарешали</h2>
+    <p id="response" th:text=" ${message}"></p>
+</div>
+</body>
+</html>
